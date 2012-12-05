@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="gbk" standalone="yes" ?>
+
+<LsiCfg>
+
+	<ShmKey>2012</ShmKey>
+	<ChannelCount>3</ChannelCount>
+	<Version>0</Version>
+
+	<Channel>
+    		<Address>191.1.0.2</Address>
+        		<Address>191.2.0.1</Address>
+        		<Size>1024000</Size>
+	</Channel>
+
+	<Channel>
+    		<Address>191.1.0.5</Address>
+        		<Address>191.5.0.1</Address>
+        		<Size>1024000</Size>
+	</Channel>
+
+	<Channel>
+    		<Address>191.1.0.6</Address>
+        		<Address>191.6.0.1</Address>
+        		<Size>1024000</Size>
+	</Channel>
+	
+</LsiCfg>
+
