@@ -2,7 +2,7 @@
 #define LSI_CTL_H_
 
 #include "lsi_tool.h"
-#include "xml/xml_wrapper.h"
+#include <xml_wrapper.h>
 
 //
 // shmem memory organized like this:
