@@ -1,0 +1,6 @@
+1. change lsi.make, set LSI directory.
+2. make
+3. enter sample directory
+4. exec lsi_init.sh
+5. exec test recv|send 
+6. exec lsi_status.sh and lsi_clean.sh
