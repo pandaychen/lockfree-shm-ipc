@@ -47,13 +47,13 @@ int lsi_destroy(LSI* lsi);
 //  LSI_NoChannel: no send channel find
 //  LSI_ChannFull: send channel is full fail
 //  LSI_Fail: other fail
-int lsi_send(LSI* lsi, lsi_ip_t to, const char* send_buf, int buf_len);
+int lsi_send(LSI* lsi, lsi_ip_t to, const char* send_buf, size_t buf_len);
 
 // return > 0: recv bytes
 // return LSI_NoChannel: no send channel find
 // return LSI_ChannEmpty: receive channel is empty, no data
 // @buf_len: input & output.
-int lsi_recv(LSI* lsi, lsi_ip_t from, char* recv_buf, int* buf_len);
+int lsi_recv(LSI* lsi, lsi_ip_t from, char* recv_buf, size_t* buf_len);
 
 const char* lsi_addr_ntoa(lsi_ip_t lsi_addr);
 

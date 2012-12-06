@@ -41,17 +41,13 @@ LsiCtl* lsi_ctl_create(const char* cfg_file)
 
         lsi_ctl->m_chan[i * 2].m_from = lsi_addr_1;
         lsi_ctl->m_chan[i * 2].m_to = lsi_addr_2;
-        lsi_ctl->m_chan[i * 2].m_size = chan_size;
-        lsi_ctl->m_chan[i * 2].start_idx = 0;
-        lsi_ctl->m_chan[i * 2].end_idx = 1;
+        lsi_ctl->m_chan[i * 2].m_size = ROUNDUP_POWOF_2(chan_size);
 
         lsi_ctl->m_chan[i * 2 + 1].m_from = lsi_addr_2;
         lsi_ctl->m_chan[i * 2 + 1].m_to = lsi_addr_1;
-        lsi_ctl->m_chan[i * 2 + 1].m_size = chan_size;
-        lsi_ctl->m_chan[i * 2 + 1].start_idx = 0;
-        lsi_ctl->m_chan[i * 2 + 1].end_idx = 1;
+        lsi_ctl->m_chan[i * 2 + 1].m_size = ROUNDUP_POWOF_2(chan_size);
 
-        lsi_ctl->m_head.m_size += (chan_size + sizeof(LsiChanHead)) * 2;
+        lsi_ctl->m_head.m_size += (ROUNDUP_POWOF_2(chan_size) + sizeof(LsiChanHead)) * 2;
     }
 
     return lsi_ctl;
@@ -151,8 +147,8 @@ int lsi_ctl_status(LsiCtl* lsi_ctl)
         printf("-->[%s], size=%d, read %u bytes, write %u bytes;\n",
                lsi_addr_ntoa(chan_head->m_to),
                chan_head->m_size,
-               chan_head->read_bytes,
-               chan_head->write_bytes);
+               chan_head->m_read_bytes,
+               chan_head->m_write_bytes);
         last_chan_size = chan_head->m_size + sizeof(LsiChanHead);
     }
 
