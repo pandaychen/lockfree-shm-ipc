@@ -1,2 +1,2 @@
 #!/bin/sh
-../lsi --conf=lsi.xml init
+../bin/lsi --conf=lsi.xml init

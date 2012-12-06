@@ -40,7 +40,7 @@ int main(int argc, char** argv)
             if (ret == LSI_ChannFull)
             {
                 printf("send channel full\n");
-                usleep(10000);
+                usleep(100000);
                 continue;
             }
             if (ret != LSI_Succ)
@@ -48,6 +48,8 @@ int main(int argc, char** argv)
                 printf("LSI send fail\n");
                 return 0;
             }
+	   static uint32 index = 0;
+	   printf("%u. send success\n", index++);
         }
 
     }
@@ -71,11 +73,16 @@ int main(int argc, char** argv)
             {
                 ret = lsi_recv(lsi, send_addr, recv_buffer, &len);
             }
-            if ((len != 1024)) // || 0 != strncmp(recv_buffer, buffer, 1024))
+            if ((len != 1024) || 0 != strncmp(recv_buffer, buffer, 1024))
             {
                 printf("recv data error\n");
                 return 0;
             }
+	   else
+	   {
+	   	static uint32 index = 0;
+	   	printf("%u. recv success\n", index++);
+	   }
         }
     }
     else

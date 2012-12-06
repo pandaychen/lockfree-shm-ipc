@@ -1,2 +1,2 @@
 #!/bin/sh
-../lsi --conf=lsi.xml clean 
+../bin/lsi --conf=lsi.xml clean 
