@@ -34,98 +34,78 @@ int lsi_chan_send_cmp(const void* data1, const void* data2)
 }
 
 // ensure enough to write
-void lsi_chan_send(LsiChanHead* chan, const char* buffer, int buf_len)
+void lsi_chan_send(LsiChanHead* chan, const char* buffer, size_t buf_len)
 {
-    int size = chan->m_size;
-    int start_idx = chan->start_idx;
-
-    // real end index should be recorded end_idx - 1
-    int end_idx = (chan->end_idx - 1 + size) % size;
+    uint32 size = chan->m_size;
+    uint32 write_shift = chan->m_write_bytes & (size - 1);
+    uint32 write_to_tail_bytes = size - write_shift;
     char* channel = (char*)chan + sizeof(LsiChanHead);
 
     // 1. buffer tail is not enough to write, append to buffer head
-    if (start_idx <= end_idx && size - end_idx < buf_len)
+    if (buf_len > write_to_tail_bytes)
     {
-        int sub_len_tail = size - end_idx;
-        int sub_len_head = buf_len - sub_len_tail;
-        memcpy(channel + end_idx, buffer, sub_len_tail);
-        memcpy(channel, buffer + sub_len_tail, sub_len_head);
-        chan->end_idx = (sub_len_head + 1) % size;
+        memcpy(channel + write_shift, buffer, write_to_tail_bytes);
+        memcpy(channel, buffer + write_to_tail_bytes, buf_len - write_to_tail_bytes);
     }
-
     // 2. only write new buffer in the tail of queue
     else
     {
-        memcpy(channel + end_idx, buffer, buf_len);
-        chan->end_idx += buf_len;
-        chan->end_idx %= size;
+        memcpy(channel + write_shift, buffer, buf_len);
     }
+    chan->m_write_bytes += buf_len;
 
-    // statics data
-    chan->write_bytes += buf_len;
-
-    //
-    // printf("send complete, start_idx=%d, end_idx=%d\n", start_idx, chan->end_idx);
+    // printf("send complete, m_write=%u\n", chan->m_write_bytes);
 }
 
 // ensure enough to read
-void lsi_chan_recv(LsiChanHead* chan, char* buffer, int buf_len)
+void lsi_chan_recv(LsiChanHead* chan, char* buffer, size_t buf_len)
 {
-    int start_idx = chan->start_idx;
-    // int end_idx = chan->end_idx;
-    int tail_len = chan->m_size - start_idx;
+    uint32 size = chan->m_size;
+    uint32 read_shift = chan->m_read_bytes & (size - 1);
+    uint32 read_to_tail_bytes = size - read_shift;
     char* channel = (char*)chan + sizeof(LsiChanHead);
 
-    if (buf_len < tail_len)
+    if (buf_len < read_to_tail_bytes)
     {
-        memcpy(buffer, channel + start_idx, buf_len);
-        chan->start_idx += buf_len;
+        memcpy(buffer, channel + read_shift, buf_len);
     }
     else
     {
-        memcpy(buffer, channel + start_idx, tail_len);
-        memcpy(buffer + tail_len, channel, buf_len - tail_len);
-        chan->start_idx = buf_len - tail_len;
+        memcpy(buffer, channel + read_shift, read_to_tail_bytes);
+        memcpy(buffer + read_to_tail_bytes, channel, buf_len - read_to_tail_bytes);
     }
+    chan->m_read_bytes += buf_len;
 
-    // statics data
-    chan->read_bytes += buf_len;
-
-    //
-    // printf("recv complete, start_idx=%d, end_idx=%d\n", chan->start_idx, end_idx);
+    // printf("recv complete, m_read=%u\n", chan->m_read_bytes);
 }
 
 // ensure enough to read
-void lsi_chan_peek(LsiChanHead* chan, char* buffer, int buf_len)
+void lsi_chan_peek(LsiChanHead* chan, char* buffer, size_t buf_len)
 {
-    int start_idx = chan->start_idx;
-    int tail_len = chan->m_size - start_idx;
+    uint32 size = chan->m_size;
+    uint32 read_shift = chan->m_read_bytes & (size - 1);
+    uint32 read_to_tail_bytes = size - read_shift;
     char* channel = (char*)chan + sizeof(LsiChanHead);
 
-    if (buf_len < tail_len)
+    if (buf_len < read_to_tail_bytes)
     {
-        memcpy(buffer, channel + start_idx, buf_len);
+        memcpy(buffer, channel + read_shift, buf_len);
     }
     else
     {
-        memcpy(buffer, channel + start_idx, tail_len);
-        memcpy(buffer + tail_len, channel, buf_len - tail_len);
+        memcpy(buffer, channel + read_shift, read_to_tail_bytes);
+        memcpy(buffer + read_to_tail_bytes, channel, buf_len - read_to_tail_bytes);
     }
 }
 
-// we set default:
-//  end == start + 1
-// if channel full, then start == end
-int lsi_chan_remain_send_bytes(LsiChanHead* chan)
+uint32 lsi_chan_remain_send_bytes(LsiChanHead* chan)
 {
-    int start_idx = chan->start_idx;
-    int end_idx = chan->end_idx;
-    return (start_idx + chan->m_size - end_idx) % chan->m_size;
+    return chan->m_size - (chan->m_write_bytes - chan->m_read_bytes);
 }
 
-int lsi_chan_remain_recv_bytes(LsiChanHead* chan)
+uint32 lsi_chan_remain_recv_bytes(LsiChanHead* chan)
 {
-    return chan->m_size - 1 - lsi_chan_remain_send_bytes(chan);
+    return chan->m_write_bytes - chan->m_read_bytes;
 }
 
 const char* lsi_addr_ntoa(lsi_ip_t lsi_addr)
@@ -256,9 +236,9 @@ int lsi_destroy(LSI* lsi)
 //  LSI_NoChannel: no send channel find
 //  LSI_ChannFull: send channel is full fail
 //  LSI_Fail: other fail
-int lsi_send(LSI* lsi, lsi_ip_t to, const char* send_buf, int buf_len)
+int lsi_send(LSI* lsi, lsi_ip_t to, const char* send_buf, size_t buf_len)
 {
-    if (!lsi || !lsi->m_send_chan || buf_len <= 0)
+    if (!lsi || !lsi->m_send_chan || buf_len == 0)
     {
         return LSI_Fail;
     }
@@ -271,8 +251,8 @@ int lsi_send(LSI* lsi, lsi_ip_t to, const char* send_buf, int buf_len)
         return LSI_NoChannel;
     }
 
-    int remains = lsi_chan_remain_send_bytes(dest);
-    if (remains < (int)(buf_len + sizeof(int)))
+    uint32 remains = lsi_chan_remain_send_bytes(dest);
+    if (remains < buf_len + sizeof(int))
     {
         return LSI_ChannFull;
     }
@@ -286,7 +266,7 @@ int lsi_send(LSI* lsi, lsi_ip_t to, const char* send_buf, int buf_len)
 // return LSI_NoChannel: no send channel find
 // return LSI_ChannEmpty: receive channel is empty, no data
 // @buf_len: input & output.
-int lsi_recv(LSI* lsi, lsi_ip_t from, char* recv_buf, int* buf_len)
+int lsi_recv(LSI* lsi, lsi_ip_t from, char* recv_buf, size_t* buf_len)
 {
     if (!lsi || !lsi->m_recv_chan || buf_len <= 0 || !buf_len)
     {
@@ -301,14 +281,14 @@ int lsi_recv(LSI* lsi, lsi_ip_t from, char* recv_buf, int* buf_len)
         return LSI_NoChannel;
     }
 
-    int recv_len = lsi_chan_remain_recv_bytes(dest);
-    if (recv_len < (int)sizeof(int))
+    uint32 recv_len = lsi_chan_remain_recv_bytes(dest);
+    if (recv_len < sizeof(int))
     {
         return LSI_ChannEmpty;
     }
 
     // read a length, then check data in queue ready for read
-    int length = 0;
+    size_t length = 0;
     lsi_chan_peek(dest, (char*)&length, sizeof(length));
 
     // data length error
@@ -323,7 +303,7 @@ int lsi_recv(LSI* lsi, lsi_ip_t from, char* recv_buf, int* buf_len)
     }
 
     // not complete data
-    if (recv_len < (int)(length + sizeof(int)))
+    if (recv_len < length + sizeof(int))
     {
         return LSI_ChannEmpty;
     }
@@ -335,7 +315,4 @@ int lsi_recv(LSI* lsi, lsi_ip_t from, char* recv_buf, int* buf_len)
 
     return LSI_Succ;
 }
-
-
-
 

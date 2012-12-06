@@ -66,7 +66,7 @@ int main(int argc, char** argv)
         memset(recv_buffer, 0, 10240);
         while (1)
         {
-            int len = 10240;
+            size_t len = 10240;
             int ret = LSI_ChannEmpty;
 
             while (ret != LSI_Succ)
@@ -91,5 +91,4 @@ int main(int argc, char** argv)
         return 0;
     }
 }
-
 
