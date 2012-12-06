@@ -37,10 +37,10 @@ int lsi_chan_send_cmp(const void* data1, const void* data2)
 void lsi_chan_send(LsiChanHead* chan, const char* buffer, int buf_len)
 {
     int size = chan->m_size;
-	int start_idx = chan->start_idx;
-	
-	// real end index should be recorded end_idx - 1
-	int end_idx = (chan->end_idx - 1 + size) % size;
+    int start_idx = chan->start_idx;
+
+    // real end index should be recorded end_idx - 1
+    int end_idx = (chan->end_idx - 1 + size) % size;
     char* channel = (char*)chan + sizeof(LsiChanHead);
 
     // 1. buffer tail is not enough to write, append to buffer head
@@ -52,23 +52,27 @@ void lsi_chan_send(LsiChanHead* chan, const char* buffer, int buf_len)
         memcpy(channel, buffer + sub_len_tail, sub_len_head);
         chan->end_idx = (sub_len_head + 1) % size;
     }
-	
+
     // 2. only write new buffer in the tail of queue
     else
     {
         memcpy(channel + end_idx, buffer, buf_len);
         chan->end_idx += buf_len;
-		chan->end_idx %= size;
+        chan->end_idx %= size;
     }
 
     // statics data
     chan->write_bytes += buf_len;
+
+    //
+    // printf("send complete, start_idx=%d, end_idx=%d\n", start_idx, chan->end_idx);
 }
 
 // ensure enough to read
 void lsi_chan_recv(LsiChanHead* chan, char* buffer, int buf_len)
 {
     int start_idx = chan->start_idx;
+    // int end_idx = chan->end_idx;
     int tail_len = chan->m_size - start_idx;
     char* channel = (char*)chan + sizeof(LsiChanHead);
 
@@ -86,6 +90,9 @@ void lsi_chan_recv(LsiChanHead* chan, char* buffer, int buf_len)
 
     // statics data
     chan->read_bytes += buf_len;
+
+    //
+    // printf("recv complete, start_idx=%d, end_idx=%d\n", chan->start_idx, end_idx);
 }
 
 // ensure enough to read
@@ -196,13 +203,13 @@ LSI* lsi_create(lsi_id_t lsi_id, lsi_ip_t addr, int lsi_version)
         if (chan_head->m_from == lsi->m_addr)
         {
             printf("get send channel: [%s]->", lsi_addr_ntoa(chan_head->m_from));
-	   printf("[%s]\n", lsi_addr_ntoa(chan_head->m_to));
+            printf("[%s]\n", lsi_addr_ntoa(chan_head->m_to));
             hash_insert(lsi->m_send_chan, chan_head);
         }
         if (chan_head->m_to == lsi->m_addr)
         {
             printf("get recv channel: [%s]->", lsi_addr_ntoa(chan_head->m_from));
-	   printf("[%s]\n", lsi_addr_ntoa(chan_head->m_to));
+            printf("[%s]\n", lsi_addr_ntoa(chan_head->m_to));
             hash_insert(lsi->m_recv_chan, chan_head);
         }
         from = (char*)chan_head + sizeof(LsiChanHead) + chan_head->m_size;
