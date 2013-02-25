@@ -1,7 +1,7 @@
 #ifndef LSI_TYPE_H_
 #define LSI_TYPE_H_
 
-#include <netinet/in.h>
+#include <stdint.h>
 
 typedef uint8_t uint8;
 typedef int8_t int8;

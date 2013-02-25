@@ -4,8 +4,8 @@
 #include "type.h"
 #include "hash.h"
 
-typedef unsigned int lsi_ip_t;
-typedef int lsi_id_t;
+typedef uint32 lsi_ip_t;
+typedef int32 lsi_id_t;
 
 #define MAX_LSI_CHAN_COUNT  100
 
