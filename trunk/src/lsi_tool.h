@@ -1,6 +1,10 @@
 #ifndef LSI_TOOL_H_
 #define LSI_TOOL_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "lsi.h"
 
 // lsi share momory head
@@ -101,6 +105,10 @@ typedef struct LsiChanHead
     (  \
                                         ( n == 1 ) ? 1 : ( 1 << ( ILOG2( n - 1 ) + 1 ) ) \
     )
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif // LSI_TOOL_H_

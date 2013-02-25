@@ -1,6 +1,10 @@
 #ifndef LSI_H_
 #define LSI_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "type.h"
 #include "hash.h"
 
@@ -59,6 +63,9 @@ const char* lsi_addr_ntoa(lsi_ip_t lsi_addr);
 
 lsi_ip_t lsi_addr_aton(const char* lsi_addr_str);
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif // LSI_H_
 

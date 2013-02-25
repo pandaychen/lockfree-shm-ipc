@@ -1,6 +1,10 @@
 #ifndef LSI_HASH_H_
 #define LSI_HASH_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "type.h"
 
 typedef int (*HashFunc)(const void*);
@@ -34,6 +38,10 @@ int hash_insert(HashTable* htable, void* data);
 int hash_remove(HashTable* htable, void* data);
 
 void* hash_find(HashTable* htable, void* data);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // LSI_HASH_H_
 
