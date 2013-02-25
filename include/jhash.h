@@ -1,6 +1,10 @@
 #ifndef LSI_JHASH_H_
 #define LSI_JHASH_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "type.h"
 
 /* jhash.h: Jenkins hash support.
@@ -98,6 +102,9 @@ static inline uint32 jhash(const void* key, uint32 length)
     return c;
 }
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif  // LSI_JHASH_H_
 
