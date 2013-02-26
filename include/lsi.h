@@ -5,16 +5,16 @@
 extern "C" {
 #endif
 
-#include "type.h"
-#include "hash.h"
+#include <stdint.h>
+#include <sys/types.h>
 
-typedef uint32 lsi_ip_t;
-typedef int32 lsi_id_t;
+typedef uint32_t lsi_ip_t;
+typedef int32_t lsi_id_t;
 
 #define MAX_LSI_CHAN_COUNT  100
-
 #define INVALID_LSI_IP 0
 
+struct HashTable;
 typedef struct LSI
 {
     // share memory addr
@@ -28,8 +28,8 @@ typedef struct LSI
 
     int m_version;
 
-    HashTable* m_send_chan;
-    HashTable* m_recv_chan;
+    struct HashTable* m_send_chan;
+    struct HashTable* m_recv_chan;
 }LSI;
 
 // error code

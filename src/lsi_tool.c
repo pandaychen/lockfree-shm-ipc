@@ -20,10 +20,10 @@ const char* usage()
 }
 
 static const char* s_short_opts = "";
-static const option s_long_opts[] =
+static const struct option s_long_opts[] =
 {
-    {"conf",    1,  NULL,   0},
-    {NULL,  0,      NULL,   0},
+    {"conf", 1, NULL, 0},
+    {NULL, 0, NULL, 0},
 };
 
 int main(int argc, char** argv)

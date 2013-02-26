@@ -6,6 +6,7 @@
 #include <sys/shm.h>
 #include "lsi.h"
 #include "lsi_tool.h"
+#include "hash.h"
 
 int lsi_chan_recv_hash(const void* data)
 {
@@ -36,9 +37,9 @@ int lsi_chan_send_cmp(const void* data1, const void* data2)
 // ensure enough to write
 void lsi_chan_send(LsiChanHead* chan, const char* buffer, size_t buf_len)
 {
-    uint32 size = chan->m_size;
-    uint32 write_shift = chan->m_write_bytes & (size - 1);
-    uint32 write_to_tail_bytes = size - write_shift;
+    uint32_t size = chan->m_size;
+    uint32_t write_shift = chan->m_write_bytes & (size - 1);
+    uint32_t write_to_tail_bytes = size - write_shift;
     char* channel = (char*)chan + sizeof(LsiChanHead);
 
     // 1. buffer tail is not enough to write, append to buffer head
@@ -60,9 +61,9 @@ void lsi_chan_send(LsiChanHead* chan, const char* buffer, size_t buf_len)
 // ensure enough to read
 void lsi_chan_recv(LsiChanHead* chan, char* buffer, size_t buf_len)
 {
-    uint32 size = chan->m_size;
-    uint32 read_shift = chan->m_read_bytes & (size - 1);
-    uint32 read_to_tail_bytes = size - read_shift;
+    uint32_t size = chan->m_size;
+    uint32_t read_shift = chan->m_read_bytes & (size - 1);
+    uint32_t read_to_tail_bytes = size - read_shift;
     char* channel = (char*)chan + sizeof(LsiChanHead);
 
     if (buf_len < read_to_tail_bytes)
@@ -82,9 +83,9 @@ void lsi_chan_recv(LsiChanHead* chan, char* buffer, size_t buf_len)
 // ensure enough to read
 void lsi_chan_peek(LsiChanHead* chan, char* buffer, size_t buf_len)
 {
-    uint32 size = chan->m_size;
-    uint32 read_shift = chan->m_read_bytes & (size - 1);
-    uint32 read_to_tail_bytes = size - read_shift;
+    uint32_t size = chan->m_size;
+    uint32_t read_shift = chan->m_read_bytes & (size - 1);
+    uint32_t read_to_tail_bytes = size - read_shift;
     char* channel = (char*)chan + sizeof(LsiChanHead);
 
     if (buf_len < read_to_tail_bytes)
@@ -98,12 +99,12 @@ void lsi_chan_peek(LsiChanHead* chan, char* buffer, size_t buf_len)
     }
 }
 
-uint32 lsi_chan_remain_send_bytes(LsiChanHead* chan)
+uint32_t lsi_chan_remain_send_bytes(LsiChanHead* chan)
 {
     return chan->m_size - (chan->m_write_bytes - chan->m_read_bytes);
 }
 
-uint32 lsi_chan_remain_recv_bytes(LsiChanHead* chan)
+uint32_t lsi_chan_remain_recv_bytes(LsiChanHead* chan)
 {
     return chan->m_write_bytes - chan->m_read_bytes;
 }
@@ -251,7 +252,7 @@ int lsi_send(LSI* lsi, lsi_ip_t to, const char* send_buf, size_t buf_len)
         return LSI_NoChannel;
     }
 
-    uint32 remains = lsi_chan_remain_send_bytes(dest);
+    uint32_t remains = lsi_chan_remain_send_bytes(dest);
     if (remains < buf_len + sizeof(int))
     {
         return LSI_ChannFull;
@@ -281,7 +282,7 @@ int lsi_recv(LSI* lsi, lsi_ip_t from, char* recv_buf, size_t* buf_len)
         return LSI_NoChannel;
     }
 
-    uint32 recv_len = lsi_chan_remain_recv_bytes(dest);
+    uint32_t recv_len = lsi_chan_remain_recv_bytes(dest);
     if (recv_len < sizeof(int))
     {
         return LSI_ChannEmpty;

@@ -1,5 +1,7 @@
 #include <sys/shm.h>
 #include <errno.h>
+#include <assert.h>
+#include <unistd.h>
 #include "lsi_ctl.h"
 
 LsiCtl* lsi_ctl_create(const char* cfg_file)
@@ -12,32 +14,46 @@ LsiCtl* lsi_ctl_create(const char* cfg_file)
     LsiCtl* lsi_ctl = (LsiCtl*)malloc(sizeof(LsiCtl));
     memset(lsi_ctl, 0, sizeof(lsi_ctl));
 
-    TiXmlDocument* cfgdoc = XmlOperator::LoadXml(cfg_file);
+    mxml_node_t* cfgdoc = xml_load_file(cfg_file);
     if (!cfgdoc)
     {
         return NULL;
     }
 
     // lsi head
-    TiXmlHandle cfghandler = XmlOperator::GetChildElement(cfgdoc, "LsiCfg");
-    TiXmlHandle shmkey = XmlOperator::GetChildElement(cfghandler, "ShmKey");
-    lsi_ctl->m_head.m_shm_key = atoi(XmlOperator::GetText(shmkey));
-    TiXmlHandle count = XmlOperator::GetChildElement(cfghandler, "ChannelCount");
-    lsi_ctl->m_head.m_chan_count = atoi(XmlOperator::GetText(count)) * 2;
-    TiXmlHandle version = XmlOperator::GetChildElement(cfghandler, "Version");
-    lsi_ctl->m_head.m_version = atoi(XmlOperator::GetText(version));
+    mxml_node_t* cfghandler = xml_find_child_element(cfgdoc, cfgdoc, "LsiCfg");
+
+    mxml_node_t* shmkey = xml_find_child_element(cfghandler, cfgdoc, "ShmKey");
+    assert(shmkey);
+    lsi_ctl->m_head.m_shm_key = atoi(xml_element_get_text(shmkey));
+
+    mxml_node_t* count = xml_find_child_element(cfghandler, cfgdoc, "ChannelCount");
+    assert(shmkey);
+    lsi_ctl->m_head.m_chan_count = atoi(xml_element_get_text(count)) * 2;
+
+    mxml_node_t* version = xml_find_child_element(cfghandler, cfgdoc, "Version");
+    lsi_ctl->m_head.m_version = atoi(xml_element_get_text(version));
     lsi_ctl->m_head.m_size += sizeof(lsi_ctl->m_head);
 
     // lsi channel
-    for (int i = 0; i < lsi_ctl->m_head.m_chan_count / 2; i++)
+    mxml_node_t* chan, *addr_1, *addr_2, *size;
+    int i = 0;
+    chan = version;
+    while (1)
     {
-        TiXmlHandle chan = XmlOperator::GetChildElement(cfghandler, "Channel", i);
-        TiXmlHandle addr_1 = XmlOperator::GetChildElement(chan, "Address", 0);
-        lsi_ip_t lsi_addr_1 = lsi_addr_aton(XmlOperator::GetText(addr_1));
-        TiXmlHandle addr_2 = XmlOperator::GetChildElement(chan, "Address", 1);
-        lsi_ip_t lsi_addr_2 = lsi_addr_aton(XmlOperator::GetText(addr_2));
-        TiXmlHandle size = XmlOperator::GetChildElement(chan, "Size");
-        int chan_size = atoi(XmlOperator::GetText(size));
+        chan = xml_find_sibling_element(chan, cfgdoc, "Channel");
+        if (!chan)
+        {
+            break;
+        }
+        addr_1 = xml_find_child_element(chan, cfgdoc, "Address");
+        assert(addr_1);
+        lsi_ip_t lsi_addr_1 = lsi_addr_aton(xml_element_get_text(addr_1));
+        addr_2 = xml_find_sibling_element(addr_1, cfgdoc, "Address");
+        assert(addr_2);
+        lsi_ip_t lsi_addr_2 = lsi_addr_aton(xml_element_get_text(addr_2));
+        size = xml_find_child_element(chan, cfgdoc, "Size");
+        int chan_size = atoi(xml_element_get_text(size));
 
         lsi_ctl->m_chan[i * 2].m_from = lsi_addr_1;
         lsi_ctl->m_chan[i * 2].m_to = lsi_addr_2;
@@ -48,6 +64,7 @@ LsiCtl* lsi_ctl_create(const char* cfg_file)
         lsi_ctl->m_chan[i * 2 + 1].m_size = ROUNDUP_POWOF_2(chan_size);
 
         lsi_ctl->m_head.m_size += (ROUNDUP_POWOF_2(chan_size) + sizeof(LsiChanHead)) * 2;
+        i ++;
     }
 
     return lsi_ctl;
@@ -60,9 +77,13 @@ int lsi_ctl_init(LsiCtl* lsi_ctl)
         return -1;
     }
 
+    int sum, shmid, last_chan_size, page_size, i;
+    char* pool, *chan;
+
     // create share memory
-    int sum = MemAlign(lsi_ctl->m_head.m_size, getpagesize());
-    int shmid = shmget(lsi_ctl->m_head.m_shm_key, sum, 0666 | IPC_CREAT | IPC_EXCL);
+    page_size = getpagesize();
+    sum = MemAlign(lsi_ctl->m_head.m_size, page_size);
+    shmid = shmget(lsi_ctl->m_head.m_shm_key, sum, 0666 | IPC_CREAT | IPC_EXCL);
     if (shmid < 0)
     {
         if (-1 == shmid && EEXIST == errno)
@@ -76,12 +97,13 @@ int lsi_ctl_init(LsiCtl* lsi_ctl)
     }
 
     // set init data
-    char* pool = (char*)(shmat(shmid, 0, 0));
+    pool = (char*)(shmat(shmid, 0, 0));
     memset(pool, 0, sum);
     memcpy(pool, &lsi_ctl->m_head, sizeof(lsi_ctl->m_head));
-    char* chan = pool + sizeof(lsi_ctl->m_head);
-    int last_chan_size = 0;
-    for (int i = 0; i < lsi_ctl->m_head.m_chan_count; i++)
+
+    chan = pool + sizeof(lsi_ctl->m_head);
+    last_chan_size = 0;
+    for (i = 0; i < lsi_ctl->m_head.m_chan_count; i++)
     {
         chan += last_chan_size;
         memcpy(chan, &lsi_ctl->m_chan[i], sizeof(LsiChanHead));
@@ -99,8 +121,13 @@ int lsi_ctl_status(LsiCtl* lsi_ctl)
         return -1;
     }
 
+    int shmid, last_chan_size, i;
+    char* pool, *chan;
+    LsiHead* load_head;
+    LsiChanHead* chan_head;
+
     // get share memory
-    int shmid = shmget(lsi_ctl->m_head.m_shm_key, 0, 0666);
+    shmid = shmget(lsi_ctl->m_head.m_shm_key, 0, 0666);
     if (shmid < 0)
     {
         printf("LSI [%d] get fail\n", lsi_ctl->m_head.m_shm_key);
@@ -108,19 +135,20 @@ int lsi_ctl_status(LsiCtl* lsi_ctl)
     }
 
     // check data
-    char* pool = (char*)(shmat(shmid, 0, 0));
-    LsiHead* load_head = (LsiHead*)pool;
+    pool = (char*)(shmat(shmid, 0, 0));
+    load_head = (LsiHead*)pool;
     if (memcmp(load_head, &lsi_ctl->m_head, sizeof(LsiHead)))
     {
         printf("LSI [%d] head fail\n", lsi_ctl->m_head.m_shm_key);
         return -1;
     }
-    char* chan = pool + sizeof(*load_head);
-    int last_chan_size = 0;
-    for (int i = 0; i < lsi_ctl->m_head.m_chan_count; i++)
+
+    chan = pool + sizeof(*load_head);
+    last_chan_size = 0;
+    for (i = 0; i < lsi_ctl->m_head.m_chan_count; i++)
     {
         chan += last_chan_size;
-        LsiChanHead* chan_head = (LsiChanHead*)(chan);
+        chan_head = (LsiChanHead*)(chan);
         if (chan_head->m_from != lsi_ctl->m_chan[i].m_from
             || chan_head->m_to != lsi_ctl->m_chan[i].m_to
             || chan_head->m_size != lsi_ctl->m_chan[i].m_size)
@@ -139,10 +167,10 @@ int lsi_ctl_status(LsiCtl* lsi_ctl)
            load_head->m_chan_count);
     chan = pool + sizeof(*load_head);
     last_chan_size = 0;
-    for (int i = 0; i < lsi_ctl->m_head.m_chan_count; i++)
+    for (i = 0; i < lsi_ctl->m_head.m_chan_count; i++)
     {
         chan += last_chan_size;
-        LsiChanHead* chan_head = (LsiChanHead*)(chan);
+        chan_head = (LsiChanHead*)(chan);
         printf("  channel: [%s]", lsi_addr_ntoa(chan_head->m_from));
         printf("-->[%s], size=%d, read %u bytes, write %u bytes;\n",
                lsi_addr_ntoa(chan_head->m_to),
@@ -176,7 +204,7 @@ int lsi_ctl_clean(LsiCtl* lsi_ctl)
 
 int lsi_ctl_destroy(LsiCtl* lsi_ctl)
 {
-    delete lsi_ctl;
+    free(lsi_ctl);
     lsi_ctl = NULL;
     return 0;
 }

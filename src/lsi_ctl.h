@@ -1,8 +1,12 @@
 #ifndef LSI_CTL_H_
 #define LSI_CTL_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "lsi_tool.h"
-#include <xml_wrapper.h>
+#include "xml_wrapper.h"
 
 //
 // shmem memory organized like this:
@@ -25,6 +29,10 @@ int lsi_ctl_status(LsiCtl* lsi_ctl);
 int lsi_ctl_clean(LsiCtl* lsi_ctl);
 
 int lsi_ctl_destroy(LsiCtl* lsi_ctl);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // LSI_CTL_H_
 

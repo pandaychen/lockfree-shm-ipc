@@ -20,7 +20,8 @@ int main(int argc, char** argv)
     lsi_ip_t recv_addr = lsi_addr_aton(recv_addr_str);
 
     char buffer[1024];
-    for (int i = 0; i < 1024; i++)
+    int i;
+    for (i = 0; i < 1024; i++)
     {
         buffer[i] = rand() % 26 + 'a';
     }
@@ -48,10 +49,9 @@ int main(int argc, char** argv)
                 printf("LSI send fail\n");
                 return 0;
             }
-	   static uint32 index = 0;
-	   printf("%u. send success\n", index++);
+            static uint32_t index = 0;
+            printf("%u. send success\n", index++);
         }
-
     }
     else if (0 == strcmp("recv", argv[1]))
     {
@@ -78,11 +78,11 @@ int main(int argc, char** argv)
                 printf("recv data error\n");
                 return 0;
             }
-	   else
-	   {
-	   	static uint32 index = 0;
-	   	printf("%u. recv success\n", index++);
-	   }
+            else
+            {
+                static uint32_t index = 0;
+                printf("%u. recv success\n", index++);
+            }
         }
     }
     else

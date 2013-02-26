@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-#include "type.h"
+#include <stdint>
 
 /* jhash.h: Jenkins hash support.
  *
@@ -47,9 +47,9 @@ extern "C" {
  * of bytes.  No alignment or length assumptions are made about
  * the input key.
  */
-static inline uint32 jhash(const void* key, uint32 length)
+static inline uint32_t jhash(const void* key, uint32_t length)
 {
-    uint32 a, b, c, len;
+    uint32_t a, b, c, len;
     const unsigned char* k = (const unsigned char*)key;
 
     len = length;
@@ -58,12 +58,12 @@ static inline uint32 jhash(const void* key, uint32 length)
 
     while (len >= 12)
     {
-        a += (k[0] + ((uint32) k[1] << 8) + ((uint32) k[2] << 16) +
-              ((uint32) k[3] << 24));
-        b += (k[4] + ((uint32) k[5] << 8) + ((uint32) k[6] << 16) +
-              ((uint32) k[7] << 24));
-        c += (k[8] + ((uint32) k[9] << 8) + ((uint32) k[10] << 16) +
-              ((uint32) k[11] << 24));
+        a += (k[0] + ((uint32_t) k[1] << 8) + ((uint32_t) k[2] << 16) +
+              ((uint32_t) k[3] << 24));
+        b += (k[4] + ((uint32_t) k[5] << 8) + ((uint32_t) k[6] << 16) +
+              ((uint32_t) k[7] << 24));
+        c += (k[8] + ((uint32_t) k[9] << 8) + ((uint32_t) k[10] << 16) +
+              ((uint32_t) k[11] << 24));
 
         __jhash_mix(a, b, c);
 
@@ -75,25 +75,25 @@ static inline uint32 jhash(const void* key, uint32 length)
     switch (len)
     {
         case 11:
-            c += ((uint32) k[10] << 24);
+            c += ((uint32_t) k[10] << 24);
         case 10:
-            c += ((uint32) k[9] << 16);
+            c += ((uint32_t) k[9] << 16);
         case 9:
-            c += ((uint32) k[8] << 8);
+            c += ((uint32_t) k[8] << 8);
         case 8:
-            b += ((uint32) k[7] << 24);
+            b += ((uint32_t) k[7] << 24);
         case 7:
-            b += ((uint32) k[6] << 16);
+            b += ((uint32_t) k[6] << 16);
         case 6:
-            b += ((uint32) k[5] << 8);
+            b += ((uint32_t) k[5] << 8);
         case 5:
             b += k[4];
         case 4:
-            a += ((uint32) k[3] << 24);
+            a += ((uint32_t) k[3] << 24);
         case 3:
-            a += ((uint32) k[2] << 16);
+            a += ((uint32_t) k[2] << 16);
         case 2:
-            a += ((uint32) k[1] << 8);
+            a += ((uint32_t) k[1] << 8);
         case 1:
             a += k[0];
     };
