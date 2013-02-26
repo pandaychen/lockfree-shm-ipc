@@ -11,7 +11,7 @@ extern "C" {
 typedef struct LsiHead
 {
     int m_version;
-    uint32 m_size; // total size, all channels including
+    uint32_t m_size; // total size, all channels including
     int m_chan_count;
     int m_shm_key;
 } LsiHead;
@@ -19,11 +19,11 @@ typedef struct LsiHead
 // lsi channel head
 typedef struct LsiChanHead
 {
-    uint32 m_size; // channel size(head not included, round up to 2^n)
+    uint32_t m_size; // channel size(head not included, round up to 2^n)
     lsi_ip_t  m_from;
     lsi_ip_t  m_to;
-    uint32 m_read_bytes;    // statics info
-    uint32 m_write_bytes;   // statics info
+    uint32_t m_read_bytes;    // statics info
+    uint32_t m_write_bytes;   // statics info
 } LsiChanHead;
 
 // memory align with base

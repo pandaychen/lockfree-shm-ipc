@@ -2,14 +2,14 @@
 #include <stdlib.h>
 #include "hash.h"
 
-HashTable* hash_create(HashFunc hash, CmpFunc cmp, int size)
+struct HashTable* hash_create(HashFunc hash, CmpFunc cmp, int size)
 {
     if (!hash || !cmp || size <= 0)
     {
         return NULL;
     }
 
-    HashTable* htable = (HashTable*)(malloc(sizeof(HashTable)));
+    struct HashTable* htable = (struct HashTable*)(malloc(sizeof(struct HashTable)));
     if (!htable)
     {
         return NULL;
@@ -29,7 +29,7 @@ HashTable* hash_create(HashFunc hash, CmpFunc cmp, int size)
     return htable;
 }
 
-int hash_destroy(HashTable* htable)
+int hash_destroy(struct HashTable* htable)
 {
     if (!htable)
     {
@@ -48,7 +48,7 @@ int hash_destroy(HashTable* htable)
     return 0;
 }
 
-int hash_clean(HashTable* htable)
+int hash_clean(struct HashTable* htable)
 {
     if (!htable)
     {
@@ -75,7 +75,7 @@ int hash_clean(HashTable* htable)
     return 0;
 }
 
-int hash_insert(HashTable* htable, void* data)
+int hash_insert(struct HashTable* htable, void* data)
 {
     if (!htable || !data)
     {
@@ -113,7 +113,7 @@ int hash_insert(HashTable* htable, void* data)
     return 0;
 }
 
-int hash_remove(HashTable* htable, void* data)
+int hash_remove(struct HashTable* htable, void* data)
 {
     if (!htable || !data)
     {
@@ -148,7 +148,7 @@ int hash_remove(HashTable* htable, void* data)
     return -1;
 }
 
-void* hash_find(HashTable* htable, void* data)
+void* hash_find(struct HashTable* htable, void* data)
 {
     if (!htable || !data)
     {

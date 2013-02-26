@@ -9,21 +9,21 @@
 	<Channel>
     		<Address>191.1.0.2</Address>
         		<Address>191.2.0.1</Address>
-        		<!--size will be round up with 2^n by LSI tool--->
+        		<!--size will be round up with 2^n by LSI tool-->
         		<Size>1024000</Size>
 	</Channel>
 
 	<Channel>
     		<Address>191.1.0.5</Address>
         		<Address>191.5.0.1</Address>
-        		<!--size will be round up with 2^n by LSI tool--->
+        		<!--size will be round up with 2^n by LSI tool-->
         		<Size>1024000</Size>
 	</Channel>
 
 	<Channel>
     		<Address>191.1.0.6</Address>
         		<Address>191.6.0.1</Address>
-        		<!--size will be round up with 2^n by LSI tool--->
+        		<!--size will be round up with 2^n by LSI tool-->
         		<Size>1024000</Size>
 	</Channel>
 	
