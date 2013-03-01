@@ -25,17 +25,17 @@ typedef struct HashTable
     struct HashNode** m_table;
 }HashTable;
 
-struct HashTable* hash_create(HashFunc hash, CmpFunc cmp, int size);
+struct HashTable* lsi_hash_create(HashFunc hash, CmpFunc cmp, int size);
 
-int hash_destroy(struct HashTable* htable);
+int lsi_hash_destroy(struct HashTable* htable);
 
-int hash_clean(struct HashTable* htable);
+int lsi_hash_clean(struct HashTable* htable);
 
-int hash_insert(struct HashTable* htable, void* data);
+int lsi_hash_insert(struct HashTable* htable, void* data);
 
-int hash_remove(struct HashTable* htable, void* data);
+int lsi_hash_remove(struct HashTable* htable, void* data);
 
-void* hash_find(struct HashTable* htable, void* data);
+void* lsi_hash_find(struct HashTable* htable, void* data);
 
 #ifdef __cplusplus
 }
