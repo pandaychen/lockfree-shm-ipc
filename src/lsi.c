@@ -145,12 +145,12 @@ LSI* lsi_create(lsi_id_t lsi_id, lsi_ip_t addr, int lsi_version)
     lsi->m_version = lsi_version;
 
     // recv & send channel hash table
-    lsi->m_recv_chan = hash_create(lsi_chan_recv_hash, lsi_chan_recv_cmp, MAX_LSI_CHAN_COUNT * 3);
+    lsi->m_recv_chan = lsi_hash_create(lsi_chan_recv_hash, lsi_chan_recv_cmp, MAX_LSI_CHAN_COUNT * 3);
     if (!lsi->m_recv_chan)
     {
         goto CreateFail;
     }
-    lsi->m_send_chan = hash_create(lsi_chan_send_hash, lsi_chan_send_cmp, MAX_LSI_CHAN_COUNT * 3);
+    lsi->m_send_chan = lsi_hash_create(lsi_chan_send_hash, lsi_chan_send_cmp, MAX_LSI_CHAN_COUNT * 3);
     if (!lsi->m_send_chan)
     {
         goto CreateFail;
@@ -185,13 +185,13 @@ LSI* lsi_create(lsi_id_t lsi_id, lsi_ip_t addr, int lsi_version)
         {
             printf("get send channel: [%s]->", lsi_addr_ntoa(chan_head->m_from));
             printf("[%s]\n", lsi_addr_ntoa(chan_head->m_to));
-            hash_insert(lsi->m_send_chan, chan_head);
+            lsi_hash_insert(lsi->m_send_chan, chan_head);
         }
         if (chan_head->m_to == lsi->m_addr)
         {
             printf("get recv channel: [%s]->", lsi_addr_ntoa(chan_head->m_from));
             printf("[%s]\n", lsi_addr_ntoa(chan_head->m_to));
-            hash_insert(lsi->m_recv_chan, chan_head);
+            lsi_hash_insert(lsi->m_recv_chan, chan_head);
         }
         from = (char*)chan_head + sizeof(LsiChanHead) + chan_head->m_size;
     }
@@ -201,11 +201,11 @@ LSI* lsi_create(lsi_id_t lsi_id, lsi_ip_t addr, int lsi_version)
 CreateFail:
     if (lsi->m_recv_chan)
     {
-        hash_destroy(lsi->m_recv_chan);
+        lsi_hash_destroy(lsi->m_recv_chan);
     }
     if (lsi->m_send_chan)
     {
-        hash_destroy(lsi->m_send_chan);
+        lsi_hash_destroy(lsi->m_send_chan);
     }
     free(lsi);
     lsi = NULL;
@@ -222,11 +222,11 @@ int lsi_destroy(LSI* lsi)
 
     if (lsi->m_recv_chan)
     {
-        hash_destroy(lsi->m_recv_chan);
+        lsi_hash_destroy(lsi->m_recv_chan);
     }
     if (lsi->m_send_chan)
     {
-        hash_destroy(lsi->m_send_chan);
+        lsi_hash_destroy(lsi->m_send_chan);
     }
     free(lsi);
     lsi = NULL;
@@ -246,7 +246,7 @@ int lsi_send(LSI* lsi, lsi_ip_t to, const char* send_buf, size_t buf_len)
 
     LsiChanHead chan;
     chan.m_to = to;
-    LsiChanHead* dest = (LsiChanHead*)hash_find(lsi->m_send_chan, &chan);
+    LsiChanHead* dest = (LsiChanHead*)lsi_hash_find(lsi->m_send_chan, &chan);
     if (!dest)
     {
         return LSI_NoChannel;
@@ -276,7 +276,7 @@ int lsi_recv(LSI* lsi, lsi_ip_t from, char* recv_buf, size_t* buf_len)
 
     LsiChanHead chan;
     chan.m_from = from;
-    LsiChanHead* dest = (LsiChanHead*)hash_find(lsi->m_recv_chan, &chan);
+    LsiChanHead* dest = (LsiChanHead*)lsi_hash_find(lsi->m_recv_chan, &chan);
     if (!dest)
     {
         return LSI_NoChannel;

@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include "hash.h"
 
-struct HashTable* hash_create(HashFunc hash, CmpFunc cmp, int size)
+struct HashTable* lsi_hash_create(HashFunc hash, CmpFunc cmp, int size)
 {
     if (!hash || !cmp || size <= 0)
     {
@@ -29,14 +29,14 @@ struct HashTable* hash_create(HashFunc hash, CmpFunc cmp, int size)
     return htable;
 }
 
-int hash_destroy(struct HashTable* htable)
+int lsi_hash_destroy(struct HashTable* htable)
 {
     if (!htable)
     {
         return -1;
     }
 
-    hash_clean(htable);
+    lsi_hash_clean(htable);
 
     if (htable->m_table)
     {
@@ -48,7 +48,7 @@ int hash_destroy(struct HashTable* htable)
     return 0;
 }
 
-int hash_clean(struct HashTable* htable)
+int lsi_hash_clean(struct HashTable* htable)
 {
     if (!htable)
     {
@@ -75,7 +75,7 @@ int hash_clean(struct HashTable* htable)
     return 0;
 }
 
-int hash_insert(struct HashTable* htable, void* data)
+int lsi_hash_insert(struct HashTable* htable, void* data)
 {
     if (!htable || !data)
     {
@@ -113,7 +113,7 @@ int hash_insert(struct HashTable* htable, void* data)
     return 0;
 }
 
-int hash_remove(struct HashTable* htable, void* data)
+int lsi_hash_remove(struct HashTable* htable, void* data)
 {
     if (!htable || !data)
     {
@@ -148,7 +148,7 @@ int hash_remove(struct HashTable* htable, void* data)
     return -1;
 }
 
-void* hash_find(struct HashTable* htable, void* data)
+void* lsi_hash_find(struct HashTable* htable, void* data)
 {
     if (!htable || !data)
     {
