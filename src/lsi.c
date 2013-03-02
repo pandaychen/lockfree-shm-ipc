@@ -8,6 +8,23 @@
 #include "lsi_tool.h"
 #include "hash.h"
 
+typedef struct LSI
+{
+    // share memory addr
+    char*   m_shm;
+
+    // lsi id, share memory key
+    lsi_id_t    m_lsi_id;
+
+    // self address
+    lsi_ip_t    m_addr;
+
+    int m_version;
+
+    struct HashTable* m_send_chan;
+    struct HashTable* m_recv_chan;
+}LSI;
+
 int lsi_chan_recv_hash(const void* data)
 {
     LsiChanHead* chan = (LsiChanHead*)data;
@@ -125,7 +142,7 @@ lsi_ip_t lsi_addr_aton(const char* lsi_addr_str)
     return INVALID_LSI_IP;
 }
 
-LSI* lsi_create(lsi_id_t lsi_id, lsi_ip_t addr, int lsi_version)
+struct LSI* lsi_create(lsi_id_t lsi_id, lsi_ip_t addr, int lsi_version)
 {
     int shmid = 0;
     LsiHead* head = NULL;
@@ -133,7 +150,7 @@ LSI* lsi_create(lsi_id_t lsi_id, lsi_ip_t addr, int lsi_version)
     int i = 0;
     LsiChanHead* chan_head = NULL;
 
-    LSI* lsi = (LSI*)malloc(sizeof(LSI));
+    struct LSI* lsi = (struct LSI*)malloc(sizeof(LSI));
     if (!lsi)
     {
         return NULL;
@@ -213,7 +230,7 @@ CreateFail:
     return NULL;
 }
 
-int lsi_destroy(LSI* lsi)
+int lsi_destroy(struct LSI* lsi)
 {
     if (!lsi)
     {
@@ -237,7 +254,7 @@ int lsi_destroy(LSI* lsi)
 //  LSI_NoChannel: no send channel find
 //  LSI_ChannFull: send channel is full fail
 //  LSI_Fail: other fail
-int lsi_send(LSI* lsi, lsi_ip_t to, const char* send_buf, size_t buf_len)
+int lsi_send(struct LSI* lsi, lsi_ip_t to, const char* send_buf, size_t buf_len)
 {
     if (!lsi || !lsi->m_send_chan || buf_len == 0)
     {
@@ -267,7 +284,7 @@ int lsi_send(LSI* lsi, lsi_ip_t to, const char* send_buf, size_t buf_len)
 // return LSI_NoChannel: no send channel find
 // return LSI_ChannEmpty: receive channel is empty, no data
 // @buf_len: input & output.
-int lsi_recv(LSI* lsi, lsi_ip_t from, char* recv_buf, size_t* buf_len)
+int lsi_recv(struct LSI* lsi, lsi_ip_t from, char* recv_buf, size_t* buf_len)
 {
     if (!lsi || !lsi->m_recv_chan || buf_len <= 0 || !buf_len)
     {

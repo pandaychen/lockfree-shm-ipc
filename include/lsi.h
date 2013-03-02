@@ -14,23 +14,7 @@ typedef int32_t lsi_id_t;
 #define MAX_LSI_CHAN_COUNT  100
 #define INVALID_LSI_IP 0
 
-struct HashTable;
-typedef struct LSI
-{
-    // share memory addr
-    char*   m_shm;
-
-    // lsi id, share memory key
-    lsi_id_t    m_lsi_id;
-
-    // self address
-    lsi_ip_t    m_addr;
-
-    int m_version;
-
-    struct HashTable* m_send_chan;
-    struct HashTable* m_recv_chan;
-}LSI;
+struct LSI;
 
 // error code
 enum LSI_ErrCode
@@ -43,21 +27,21 @@ enum LSI_ErrCode
     LSI_Fail,
 };
 
-LSI* lsi_create(lsi_id_t lsi_id, lsi_ip_t addr, int lsi_version);
+struct LSI* lsi_create(lsi_id_t lsi_id, lsi_ip_t addr, int lsi_version);
 
-int lsi_destroy(LSI* lsi);
+int lsi_destroy(struct LSI* lsi);
 
 // return 0: send success
 //  LSI_NoChannel: no send channel find
 //  LSI_ChannFull: send channel is full fail
 //  LSI_Fail: other fail
-int lsi_send(LSI* lsi, lsi_ip_t to, const char* send_buf, size_t buf_len);
+int lsi_send(struct LSI* lsi, lsi_ip_t to, const char* send_buf, size_t buf_len);
 
 // return > 0: recv bytes
 // return LSI_NoChannel: no send channel find
 // return LSI_ChannEmpty: receive channel is empty, no data
 // @buf_len: input & output.
-int lsi_recv(LSI* lsi, lsi_ip_t from, char* recv_buf, size_t* buf_len);
+int lsi_recv(struct LSI* lsi, lsi_ip_t from, char* recv_buf, size_t* buf_len);
 
 const char* lsi_addr_ntoa(lsi_ip_t lsi_addr);
 
