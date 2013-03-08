@@ -27,9 +27,9 @@ enum LSI_ErrCode
     LSI_Fail,
 };
 
-struct LSI* lsi_create(lsi_id_t lsi_id, lsi_ip_t addr, int lsi_version);
+struct LSI* lsi_init(lsi_id_t lsi_id, lsi_ip_t addr, int lsi_version);
 
-int lsi_destroy(struct LSI* lsi);
+int lsi_release(struct LSI* lsi);
 
 // return 0: send success
 //  LSI_NoChannel: no send channel find

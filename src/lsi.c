@@ -142,7 +142,7 @@ lsi_ip_t lsi_addr_aton(const char* lsi_addr_str)
     return INVALID_LSI_IP;
 }
 
-struct LSI* lsi_create(lsi_id_t lsi_id, lsi_ip_t addr, int lsi_version)
+struct LSI* lsi_init(lsi_id_t lsi_id, lsi_ip_t addr, int lsi_version)
 {
     int shmid = 0;
     LsiHead* head = NULL;
@@ -230,7 +230,7 @@ CreateFail:
     return NULL;
 }
 
-int lsi_destroy(struct LSI* lsi)
+int lsi_release(struct LSI* lsi)
 {
     if (!lsi)
     {
