@@ -29,7 +29,7 @@ int main(int argc, char** argv)
 
     if (0 == strcmp("send", argv[1]))
     {
-        LSI* lsi = lsi_create(shmkey, send_addr, version);
+        LSI* lsi = lsi_init(shmkey, send_addr, version);
         if (!lsi)
         {
             printf("LSI init fail\n");
@@ -55,7 +55,7 @@ int main(int argc, char** argv)
     }
     else if (0 == strcmp("recv", argv[1]))
     {
-        LSI* lsi = lsi_create(shmkey, recv_addr, version);
+        LSI* lsi = lsi_init(shmkey, recv_addr, version);
         if (!lsi)
         {
             printf("LSI init fail\n");
